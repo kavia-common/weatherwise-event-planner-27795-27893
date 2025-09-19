@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useCurrentWeather, useForecast } from "../api/client";
 import WeatherCard from "../components/WeatherCard";
 import ForecastGrid from "../components/ForecastGrid";
+import Toast from "../components/Toast";
 
 /**
  * PUBLIC_INTERFACE
@@ -9,6 +10,8 @@ import ForecastGrid from "../components/ForecastGrid";
  */
 export default function Home() {
   const [location, setLocation] = useState("San Francisco");
+  const [toast, setToast] = useState(null);
+
   const { data, error, loading, refetch } = useCurrentWeather(location, { auto: true });
   const { data: forecast, error: fErr, loading: fLoading, refetch: refetchForecast } = useForecast(
     { location, hours: 24, step_hours: 3 },
@@ -16,8 +19,12 @@ export default function Home() {
   );
 
   const handleCheck = async () => {
-    await refetch();
-    await refetchForecast();
+    try {
+      await refetch();
+      await refetchForecast();
+    } catch (e) {
+      setToast({ type: "error", message: e.message || "Failed to refresh data" });
+    }
   };
 
   return (
@@ -29,20 +36,25 @@ export default function Home() {
       </p>
 
       <div className="row" style={{ marginBottom: 12 }}>
-        <input
-          aria-label="Weather location"
-          className="grow"
-          style={{
-            padding: 10,
-            borderRadius: 10,
-            border: "1px solid var(--color-border)",
-            background: "var(--color-surface)",
-          }}
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Enter a city (e.g., San Francisco)"
-        />
-        <button className="btn" onClick={handleCheck}>Check Weather</button>
+        <label className="grow" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span className="sr-only" aria-hidden="true" style={{ position: "absolute", left: -9999 }}>Weather location</span>
+          <input
+            aria-label="Weather location"
+            className="grow"
+            style={{
+              padding: 10,
+              borderRadius: 10,
+              border: "1px solid var(--color-border)",
+              background: "var(--color-surface)",
+            }}
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Enter a city (e.g., San Francisco)"
+          />
+        </label>
+        <button className="btn" onClick={handleCheck} aria-busy={loading || fLoading ? "true" : "false"}>
+          {loading || fLoading ? "Checking…" : "Check Weather"}
+        </button>
       </div>
 
       <div className="card-grid">
@@ -53,6 +65,7 @@ export default function Home() {
           loading={loading}
           error={error}
           onRefresh={handleCheck}
+          onError={(e) => setToast({ type: "error", message: e?.message || "Failed to load weather" })}
         />
         <ForecastGrid
           title="Next 24h Forecast"
@@ -60,11 +73,13 @@ export default function Home() {
           loading={fLoading}
           error={fErr}
         />
-        <div className="card">
+        <div className="card" role="region" aria-label="Smart Recommendations intro">
           <h3>Smart Recommendations</h3>
           <p>Personalized suggestions tailored to your event.</p>
         </div>
       </div>
+
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
     </section>
   );
 }

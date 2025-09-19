@@ -1,8 +1,12 @@
 import React from "react";
 import { getGradient } from "../theme";
+import { Spinner, Skeleton } from "./Loading";
 
-// PUBLIC_INTERFACE
-export default function WeatherCard({ title = "Current Weather", location, data, loading, error, onRefresh }) {
+/**
+ * PUBLIC_INTERFACE
+ * WeatherCard with accessible loading and error states.
+ */
+export default function WeatherCard({ title = "Current Weather", location, data, loading, error, onRefresh, onError }) {
   /**
    * WeatherCard: Elegant rose-gold card to display current weather snapshot for a location.
    * Props:
@@ -12,6 +16,7 @@ export default function WeatherCard({ title = "Current Weather", location, data,
    * - loading: boolean
    * - error: Error | null
    * - onRefresh: function to refetch data
+   * - onError?: (error) => void  // optional callback for error toasts
    */
   return (
     <div
@@ -33,14 +38,43 @@ export default function WeatherCard({ title = "Current Weather", location, data,
       />
       <div style={{ position: "relative" }}>
         <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
-          <h3 style={{ margin: 0 }}>{title}</h3>
-          <button className="btn" onClick={onRefresh} disabled={loading} aria-label="Refresh weather">
+          <h3 style={{ margin: 0 }} id="weather-title">{title}</h3>
+          <button
+            className="btn"
+            onClick={onRefresh}
+            disabled={loading}
+            aria-label="Refresh weather"
+            aria-describedby="weather-title"
+          >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
-        {error && <p style={{ color: "var(--color-error)" }}>{error.message || "Failed to load"}</p>}
-        {!loading && !error && !data && <p style={{ color: "var(--color-text-muted)" }}>Enter a city to view current weather.</p>}
-        {data && (
+
+        {loading && (
+          <div>
+            <Spinner label="Loading current weather" />
+            <div style={{ marginTop: 10 }}>
+              <Skeleton width="40%" height={24} />
+              <Skeleton width="60%" style={{ marginTop: 8 }} />
+              <Skeleton width="30%" style={{ marginTop: 8 }} />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <p style={{ color: "var(--color-error)" }} role="alert">
+            {onError ? onError(error) : null}
+            {error.message || "Failed to load"}
+          </p>
+        )}
+
+        {!loading && !error && !data && (
+          <p style={{ color: "var(--color-text-muted)" }} role="status">
+            Enter a city to view current weather.
+          </p>
+        )}
+
+        {data && !loading && !error && (
           <div className="row" style={{ alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-primary-dark)" }}>

@@ -7,7 +7,7 @@ export default function Navbar({ onPrimaryAction }) {
   /** Elegant top navigation bar with brand and quick links */
   return (
     <nav className="navbar" style={{ backgroundImage: getGradient("subtle") }}>
-      <div className="brand">
+      <div className="brand" aria-label="WeatherWise Events">
         <div className="brand-mark" aria-hidden="true" />
         <span className="brand-name">WeatherWise Events</span>
       </div>
@@ -16,7 +16,7 @@ export default function Navbar({ onPrimaryAction }) {
         <NavLink className="nav-link" to="/plan">Plan Event</NavLink>
         <NavLink className="nav-link" to="/services">Services</NavLink>
         <NavLink className="nav-link" to="/contact">Contact</NavLink>
-        <button className="btn" onClick={onPrimaryAction}>Get Recommendations</button>
+        <button className="btn" onClick={onPrimaryAction} aria-label="Open recommendations flow">Get Recommendations</button>
       </div>
     </nav>
   );

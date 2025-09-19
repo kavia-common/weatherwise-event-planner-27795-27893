@@ -3,6 +3,8 @@ import { useRecommendations, useScoreEventDate, useCreateEvent } from "../api/cl
 import EventForm from "../components/EventForm";
 import RecommendationList from "../components/RecommendationList";
 import ScoreBadge from "../components/ScoreBadge";
+import { Skeleton } from "../components/Loading";
+import Toast from "../components/Toast";
 
 /**
  * PUBLIC_INTERFACE
@@ -15,6 +17,7 @@ export default function PlanEvent() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [windowHours, setWindowHours] = useState(3);
   const [stepHours, setStepHours] = useState(3);
+  const [toast, setToast] = useState(null);
 
   const recommendationRequest = useMemo(
     () => ({
@@ -44,19 +47,36 @@ export default function PlanEvent() {
   const { data: scores, error: scoreError, loading: scoreLoading, refetch: runScore } = useScoreEventDate(scoreRequest, { auto: false });
   const { data: created, error: createError, loading: creating, submit: createEvent } = useCreateEvent();
 
-  const handleRecommend = () => runRecs();
-  const handleScore = () => runScore();
+  const handleRecommend = async () => {
+    try {
+      await runRecs();
+    } catch (e) {
+      setToast({ type: "error", message: e.message || "Failed to generate recommendations" });
+    }
+  };
+  const handleScore = async () => {
+    try {
+      await runScore();
+    } catch (e) {
+      setToast({ type: "error", message: e.message || "Failed to score date" });
+    }
+  };
   const handleBook = async () => {
-    const payload = {
-      name,
-      email,
-      date,
-      location,
-      flexibility_days: 0,
-      preferences: [],
-      notes: "Created via demo form",
-    };
-    await createEvent(payload);
+    try {
+      const payload = {
+        name,
+        email,
+        date,
+        location,
+        flexibility_days: 0,
+        preferences: [],
+        notes: "Created via demo form",
+      };
+      const res = await createEvent(payload);
+      setToast({ type: "success", message: `Event created! ID: ${res?.id || "N/A"}` });
+    } catch (e) {
+      setToast({ type: "error", message: e.message || "Failed to create event" });
+    }
   };
 
   const bestScore = scores?.options?.length ? scores.options[0].score : null;
@@ -85,15 +105,16 @@ export default function PlanEvent() {
         onScore={handleScore}
         onBook={handleBook}
         loadingStates={{ recLoading, scoreLoading, creating }}
+        onValidationError={(msg) => setToast({ type: "error", message: msg })}
       />
 
       {(recError || scoreError || createError) && (
-        <p style={{ color: "var(--color-error)", marginTop: 8 }}>
+        <p style={{ color: "var(--color-error)", marginTop: 8 }} role="alert">
           {(recError && recError.message) || (scoreError && scoreError.message) || (createError && createError.message)}
         </p>
       )}
       {created && (
-        <p style={{ color: "var(--color-success)", marginTop: 8 }}>
+        <p style={{ color: "var(--color-success)", marginTop: 8 }} role="status">
           Event created! ID: {created.id}
         </p>
       )}
@@ -105,17 +126,24 @@ export default function PlanEvent() {
           loading={recLoading}
           error={recError}
         />
-        <div className="card">
+        <div className="card" aria-labelledby="scored-title">
           <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-            <h3 style={{ marginTop: 0 }}>Scored Windows</h3>
+            <h3 style={{ marginTop: 0 }} id="scored-title">Scored Windows</h3>
             {bestScore != null ? <ScoreBadge label="Best" score={bestScore} /> : null}
           </div>
           {!scoreLoading && !scores && <p>Click "Score Date" to evaluate time windows.</p>}
-          {scoreLoading && <p>Scoring windows…</p>}
+          {scoreLoading && (
+            <div>
+              <p>Scoring windows…</p>
+              <Skeleton height={14} width="70%" />
+              <Skeleton height={14} width="60%" style={{ marginTop: 6 }} />
+              <Skeleton height={14} width="40%" style={{ marginTop: 6 }} />
+            </div>
+          )}
           {scores && Array.isArray(scores.options) && scores.options.length > 0 ? (
-            <ol>
+            <ol role="list" aria-describedby="scored-title">
               {scores.options.map((opt, idx) => (
-                <li key={idx} style={{ marginBottom: 6 }}>
+                <li key={idx} style={{ marginBottom: 6 }} role="listitem" tabIndex={0}>
                   <ScoreBadge score={opt.score} />{" "}
                   <strong>{opt.label}</strong>
                   {opt.start && opt.end && (
@@ -132,6 +160,8 @@ export default function PlanEvent() {
           ) : null}
         </div>
       </div>
+
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
     </section>
   );
 }

@@ -1,27 +1,38 @@
 import React from "react";
 import ScoreBadge from "./ScoreBadge";
+import { Skeleton } from "./Loading";
 
 // PUBLIC_INTERFACE
 export default function RecommendationList({ options, loading, error, title = "Recommendations" }) {
   /**
    * RecommendationList: renders ranked options with scores and optional notes.
-   * Props:
-   * - options: Array<{ label, score, start?, end?, notes? }>
-   * - loading, error
-   * - title
+   * Accessibility:
+   * - role="list" and role="listitem" with keyboard focus management.
    */
   return (
-    <div className="card">
-      <h3 style={{ marginTop: 0 }}>{title}</h3>
-      {loading && <p>Generating recommendations…</p>}
-      {error && <p style={{ color: "var(--color-error)" }}>{error.message || "Failed to generate"}</p>}
-      {!loading && !error && (!options || options.length === 0) && (
-        <p style={{ color: "var(--color-text-muted)" }}>No options yet.</p>
+    <div className="card" aria-labelledby="recs-title">
+      <h3 style={{ marginTop: 0 }} id="recs-title">{title}</h3>
+
+      {loading && (
+        <div aria-live="polite">
+          <Skeleton height={18} width="60%" />
+          <Skeleton height={18} width="70%" style={{ marginTop: 8 }} />
+          <Skeleton height={18} width="50%" style={{ marginTop: 8 }} />
+        </div>
       )}
+
+      {error && <p style={{ color: "var(--color-error)" }} role="alert">{error.message || "Failed to generate"}</p>}
+
+      {!loading && !error && (!options || options.length === 0) && (
+        <p style={{ color: "var(--color-text-muted)" }} role="status">No options yet.</p>
+      )}
+
       {Array.isArray(options) && options.length > 0 && (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }} role="list" aria-describedby="recs-title">
           {options.map((opt, idx) => (
             <li
+              role="listitem"
+              tabIndex={0}
               key={`${opt.label}-${idx}`}
               style={{
                 display: "flex",
@@ -30,6 +41,13 @@ export default function RecommendationList({ options, loading, error, title = "R
                 gap: 12,
                 padding: "12px 10px",
                 borderBottom: "1px dashed var(--color-border)",
+                outline: "none",
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.currentTarget.click?.();
+                }
               }}
             >
               <div style={{ minWidth: 0 }}>
