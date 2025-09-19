@@ -1,0 +1,4 @@
+{
+    "command": "npm install",
+    "working_directory": "/home/kavia/workspace/code-generation/weatherwise-event-planner-27795-27893/events_frontend"
+}
