@@ -1,47 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from "react";
+import "./App.css";
+import { applyCssVariables, themeTokens } from "./theme";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * App: Root layout shell with Elegant Rose Gold theme, navbar, sidebar, and demo content.
+ */
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  // Effect to apply theme to document element
+  // Initialize theme variables on mount
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    applyCssVariables();
+  }, []);
 
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  const handlePrimaryAction = () => {
+    // Placeholder action: in future connect to backend (/api/events/recommendations)
+    // For now, just focus visible feedback.
+    alert("Recommendations flow coming soon!");
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app" aria-label={`${themeTokens.name} Themed Application Shell`}>
+      <Navbar onPrimaryAction={handlePrimaryAction} />
+      <Sidebar />
+      <main className="content">
+        <section className="hero">
+          <h1 className="title">Plan weather‑wise, celebrate stress‑free</h1>
+          <p className="subtitle">
+            Elegant planning with live weather insights. Use our recommendations to
+            choose the best time for your event based on forecast and comfort.
+          </p>
+          <div className="row">
+            <button className="btn" onClick={handlePrimaryAction}>Start Planning</button>
+            <div className="grow" />
+          </div>
+
+          <div className="card-grid">
+            <div className="card">
+              <h3>Live Weather</h3>
+              <p>See current conditions and plan with confidence.</p>
+            </div>
+            <div className="card">
+              <h3>Forecast Windows</h3>
+              <p>We score time windows to find the most comfortable slot.</p>
+            </div>
+            <div className="card">
+              <h3>Smart Recommendations</h3>
+              <p>Personalized suggestions tailored to your event.</p>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
