@@ -1,82 +1,55 @@
-# Lightweight React Template for KAVIA
+# WeatherWise Events - Frontend (React)
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+## Introduction
+This is the customer‑facing web UI for WeatherWise Events. It communicates with the FastAPI backend to fetch weather, score date suitability, list and create events, and generate recommendations.
 
-## Features
+## Prerequisites
+- Node.js 18+
+- npm
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+## Setup
 
-## Getting Started
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-### `npm test`
-
-Launches the test runner in interactive watch mode.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-## Backend API configuration
-
-Set the API base URL with an environment variable in a `.env` file at the project root:
-
+### 1. Install dependencies
 ```
-REACT_APP_API_BASE_URL=http://localhost:8000
+npm install
 ```
 
-- When omitted, the frontend calls same-origin paths (e.g., `/api/weather/current?...`).
+### 2. Configure environment
+Copy `.env.example` to `.env` and set:
+- `REACT_APP_API_BASE_URL=http://localhost:8000` for development if the backend runs on port 8000.
+- If omitted, the app will call same‑origin relative paths (e.g., `/api/...`). This is useful when using a proxy.
+
+See `events_frontend/.env.example` for details.
+
+### 3. Start the dev server
+```
+npm start
+```
+The app will be available at http://localhost:3000
+
+## Available Commands
+- `npm start` — Start dev server
+- `npm test` — Run tests
+- `npm run build` — Production build
+
+## Backend Coordination and CORS
+- Default dev setup:
+  - Backend: http://localhost:8000
+  - Frontend: http://localhost:3000
+- Set `REACT_APP_API_BASE_URL` in the frontend `.env` to point to the backend.
+- Ensure the backend `.env` sets `CORS_ALLOW_ORIGINS=http://localhost:3000` (or `*` for development).
+- If deploying as same origin (reverse proxy), you can remove `REACT_APP_API_BASE_URL` and route `/api/*` to the backend.
+
+## OpenAPI Reference
+- Live docs from backend: http://localhost:8000/docs
+- Schema JSON: http://localhost:8000/openapi.json
+- A repository copy is at `events_backend/interfaces/openapi.json`.
+
+## Post‑MVP Upgrade Notes
+- Add analytics or error monitoring (Sentry, etc.) with proper environment variables (do not expose secrets).
+- Add a reverse proxy configuration for production so the frontend and backend are served from a single origin.
+- Harden CORS and content security policies for production.
 
 ## Customization
-
-### Colors
-
-The main brand colors are defined as CSS variables in `src/App.css`.
-
-### Components
-
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
-
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
-
-## Learn More
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Theme tokens and helpers live in `src/theme.js`; CSS variables are in `src/App.css`.
+- Components are accessible, lightweight, and easy to adapt.
