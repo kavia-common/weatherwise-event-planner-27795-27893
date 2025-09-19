@@ -1,5 +1,6 @@
 import React from "react";
 import { getGradient } from "../theme";
+import { NavLink } from "react-router-dom";
 
 // PUBLIC_INTERFACE
 export default function Navbar({ onPrimaryAction }) {
@@ -11,11 +12,10 @@ export default function Navbar({ onPrimaryAction }) {
         <span className="brand-name">WeatherWise Events</span>
       </div>
       <div className="nav-links">
-        <a className="nav-link" href="#home">Home</a>
-        <a className="nav-link" href="#plan">Plan Event</a>
-        <a className="nav-link" href="#forecast">Forecast</a>
-        <a className="nav-link" href="#services">Services</a>
-        <a className="nav-link" href="#contact">Contact</a>
+        <NavLink className="nav-link" to="/">Home</NavLink>
+        <NavLink className="nav-link" to="/plan">Plan Event</NavLink>
+        <NavLink className="nav-link" to="/services">Services</NavLink>
+        <NavLink className="nav-link" to="/contact">Contact</NavLink>
         <button className="btn" onClick={onPrimaryAction}>Get Recommendations</button>
       </div>
     </nav>

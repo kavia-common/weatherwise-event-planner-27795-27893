@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 // PUBLIC_INTERFACE
 export default function Sidebar() {
@@ -7,10 +8,10 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-card">
         <h4 className="sidebar-title">Navigation</h4>
-        <a className="sidebar-item" href="#home">Dashboard</a>
-        <a className="sidebar-item" href="#plan">Plan an Event</a>
-        <a className="sidebar-item" href="#forecast">Weather & Forecast</a>
-        <a className="sidebar-item" href="#bookings">My Bookings</a>
+        <Link className="sidebar-item" to="/">Dashboard</Link>
+        <Link className="sidebar-item" to="/plan">Plan an Event</Link>
+        <Link className="sidebar-item" to="/services">Services</Link>
+        <Link className="sidebar-item" to="/contact">Contact</Link>
       </div>
     </aside>
   );
