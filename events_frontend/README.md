@@ -27,21 +27,21 @@ Launches the test runner in interactive watch mode.
 Builds the app for production to the `build` folder.\
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
+## Backend API configuration
+
+Set the API base URL with an environment variable in a `.env` file at the project root:
+
+```
+REACT_APP_API_BASE_URL=http://localhost:8000
+```
+
+- When omitted, the frontend calls same-origin paths (e.g., `/api/weather/current?...`).
+
 ## Customization
 
 ### Colors
 
-The main brand colors are defined as CSS variables in `src/App.css`:
-
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
-```
+The main brand colors are defined as CSS variables in `src/App.css`.
 
 ### Components
 
