@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { useCurrentWeather } from "../api/client";
+import { useCurrentWeather, useForecast } from "../api/client";
+import WeatherCard from "../components/WeatherCard";
+import ForecastGrid from "../components/ForecastGrid";
 
 /**
  * PUBLIC_INTERFACE
@@ -8,6 +10,15 @@ import { useCurrentWeather } from "../api/client";
 export default function Home() {
   const [location, setLocation] = useState("San Francisco");
   const { data, error, loading, refetch } = useCurrentWeather(location, { auto: true });
+  const { data: forecast, error: fErr, loading: fLoading, refetch: refetchForecast } = useForecast(
+    { location, hours: 24, step_hours: 3 },
+    { auto: true }
+  );
+
+  const handleCheck = async () => {
+    await refetch();
+    await refetchForecast();
+  };
 
   return (
     <section className="hero">
@@ -31,32 +42,24 @@ export default function Home() {
           onChange={(e) => setLocation(e.target.value)}
           placeholder="Enter a city (e.g., San Francisco)"
         />
-        <button className="btn" onClick={() => refetch()}>Check Weather</button>
+        <button className="btn" onClick={handleCheck}>Check Weather</button>
       </div>
 
       <div className="card-grid">
-        <div className="card">
-          <h3>Live Weather</h3>
-          {loading && <p>Loading current weather…</p>}
-          {error && <p style={{ color: "var(--color-error)" }}>{error.message || "Failed to load weather"}</p>}
-          {data && (
-            <div>
-              <p>
-                <strong>{location}</strong>
-              </p>
-              <p>Condition: {data.condition}</p>
-              <p>Temperature: {data.temperature_c}°C</p>
-              {"humidity" in data && <p>Humidity: {data.humidity}%</p>}
-              {"wind_kph" in data && <p>Wind: {data.wind_kph} km/h</p>}
-              <p style={{ color: "var(--color-text-muted)" }}>Updated: {new Date(data.timestamp).toLocaleString()}</p>
-            </div>
-          )}
-          {!loading && !error && !data && <p>Enter a city to view current weather.</p>}
-        </div>
-        <div className="card">
-          <h3>Forecast Windows</h3>
-          <p>We score time windows to find the most comfortable slot.</p>
-        </div>
+        <WeatherCard
+          title="Live Weather"
+          location={location}
+          data={data}
+          loading={loading}
+          error={error}
+          onRefresh={handleCheck}
+        />
+        <ForecastGrid
+          title="Next 24h Forecast"
+          items={forecast}
+          loading={fLoading}
+          error={fErr}
+        />
         <div className="card">
           <h3>Smart Recommendations</h3>
           <p>Personalized suggestions tailored to your event.</p>
