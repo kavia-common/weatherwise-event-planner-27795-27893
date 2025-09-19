@@ -14,26 +14,58 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // - Hooks expose { data, error, loading, refetch }.
 //
 
-const API_BASE =
-  process.env.REACT_APP_API_BASE_URL && process.env.REACT_APP_API_BASE_URL.trim() !== ""
-    ? process.env.REACT_APP_API_BASE_URL.replace(/\/$/, "")
-    : ""; // same-origin
+// Normalize base URL. Allow empty for same-origin.
+const RAW_BASE = (process.env.REACT_APP_API_BASE_URL || "").trim();
+const API_BASE = RAW_BASE ? RAW_BASE.replace(/\/+$/, "") : ""; // no trailing slash
+
+const DEBUG = String(process.env.REACT_APP_API_DEBUG || "").toLowerCase() === "true";
+
+// In dev, log resolved API base once for easier troubleshooting
+if (DEBUG && typeof window !== "undefined") {
+  // eslint-disable-next-line no-console
+  console.info("[WeatherWise API] Using API_BASE:", API_BASE || "(same-origin)");
+}
+
+/**
+ * Compose a full URL from base and a path, ensuring exactly one slash separator.
+ */
+function buildUrl(path) {
+  if (!path.startsWith("/")) path = `/${path}`;
+  // If API_BASE already includes a path prefix, we just concatenate.
+  return `${API_BASE}${path}`;
+}
 
 /**
  * Low-level JSON fetch helper with standard headers and error handling.
+ * Adds clearer diagnostics for network/CORS failures.
  * @param {string} path - Path relative to API_BASE, e.g. '/api/weather/current?location=...'
  * @param {RequestInit} options - fetch options
  * @returns {Promise<any>} Parsed JSON
  */
 async function jsonFetch(path, options = {}) {
-  const url = `${API_BASE}${path}`;
-  const resp = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  const url = buildUrl(path);
+  let resp;
+  try {
+    resp = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+  } catch (networkErr) {
+    // Common case: CORS blocked or server unreachable leads to TypeError: Failed to fetch
+    const hint = API_BASE
+      ? `Check that your backend is reachable at ${API_BASE} and that CORS allows origin ${window?.location?.origin}.`
+      : `You are using same-origin calls. Ensure your dev proxy is forwarding /api/* to the backend, or set REACT_APP_API_BASE_URL.`;
+    const err = new Error(
+      `Network error when calling ${url}. ${networkErr?.message || "Failed to fetch"}. ${hint}`
+    );
+    err.cause = networkErr;
+    err.isNetworkError = true;
+    throw err;
+  }
+
   let payload = null;
   const contentType = resp.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
@@ -43,14 +75,27 @@ async function jsonFetch(path, options = {}) {
       payload = null;
     }
   } else {
-    payload = await resp.text().catch(() => null);
+    try {
+      payload = await resp.text();
+    } catch {
+      payload = null;
+    }
   }
+
   if (!resp.ok) {
     const err = new Error(
-      (payload && payload.detail) || (payload && payload.message) || `Request failed: ${resp.status}`
+      (payload && payload.detail) ||
+        (payload && payload.message) ||
+        `Request failed: ${resp.status} ${resp.statusText}`
     );
     err.status = resp.status;
     err.payload = payload;
+    err.url = url;
+    // Provide CORS hint for 401/403 when cross-origin
+    if ((resp.status === 401 || resp.status === 403) && API_BASE) {
+      err.hint =
+        "Authentication/CORS may be misconfigured. Ensure backend allows your frontend origin in CORS.";
+    }
     throw err;
   }
   return payload;
@@ -58,7 +103,10 @@ async function jsonFetch(path, options = {}) {
 
 // PUBLIC_INTERFACE
 export const api = {
-  /** Health check GET / */
+  /**
+   * Health check GET /
+   * Useful to quickly verify connectivity and CORS.
+   */
   health() {
     return jsonFetch(`/`, { method: "GET" });
   },
